@@ -3,15 +3,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Search, Shield, Star, CheckCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 const Index = () => {
-  const features = [{
+  const features = [
+    {
     icon: Shield,
     title: "Verified Listings",
     description: "All hostels are verified by our admin team before appearing on the platform"
-  }, {
+  }, 
+    {
     icon: Star,
     title: "Student Reviews",
     description: "Read honest reviews from fellow students about their experiences"
-  }, {
+  }, 
+    {
     icon: Search,
     title: "Smart Filters",
     description: "Find your perfect hostel with advanced search and filter options"
