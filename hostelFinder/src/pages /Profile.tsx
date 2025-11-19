@@ -120,7 +120,8 @@ const Profile = () => {
                 <CardTitle className="text-2xl">Profile Settings</CardTitle>
                 <CardDescription>Manage your account information</CardDescription>
               </div>
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
+
                 <User className="h-8 w-8 text-primary" />
               </div>
             </div>
@@ -137,16 +138,18 @@ const Profile = () => {
 
             {/* Profile Form */}
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  disabled={!isEditing}
-                />
-              </div>
-
+              <div className="space-y-1">
+  <Label htmlFor="fullName" className="text-sm font-medium">
+    Full Name
+  </Label>
+  <Input
+    id="fullName"
+    value={fullName}
+    onChange={(e) => setFullName(e.target.value)}
+    disabled={!isEditing}
+    className="transition-all duration-200"
+  />
+</div>
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
