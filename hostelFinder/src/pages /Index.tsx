@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Search, Shield, Star, CheckCircle, Users } from "lucide-react";
+import React from "react";
 import { Link } from "react-router-dom";
-// import hostel1 from "@/assets/hostel-1.jpg";
-// import hostel2 from "@/assets/hostel-2.jpg";
-// import hostel3 from "@/assets/hostel-3.jpg";
-// import hostel4 from "@/assets/hostel-4.jpg";
+import hostel1 from "@/assets/hostel-1.jpg";
+import hostel2 from "@/assets/hostel-2.jpg";
+import hostel3 from "@/assets/hostel-3.jpg";
+import hostel4 from "@/assets/hostel-4.jpg";
 
 const Index = () => {
   const features = [{
@@ -77,11 +78,15 @@ const Index = () => {
         </div>
 
         {/* Hero Illustration */}
-        <div className="mt-16 relative">
+       <div className="mt-16 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl blur-3xl"></div>
           <div className="relative bg-card border border-border rounded-2xl p-8 shadow-lg">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => <div key={i} className="aspect-square bg-muted rounded-xl animate-pulse"></div>)}
+              {[hostel1, hostel2, hostel3, hostel4].map((img, i) => (
+                <div key={i} className="aspect-square rounded-xl overflow-hidden">
+                  <img src={img} alt={`Hostel ${i + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
             </div>
           </div>
         </div>

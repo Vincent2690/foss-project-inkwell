@@ -1,47 +1,99 @@
-import { useState } from "react";
-import { Building2, Search, Filter, Star, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Building2, Search, Filter, Star, MapPin, Bookmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBookmarks } from "@/hooks/useBookmarks";
+import React from "react";
+
+interface Listing {
+  id: string;
+  name: string;
+  price: number;
+  address: string;
+  amenities: string[];
+  description: string | null;
+  image_url: string | null;
+  avg_rating: number | null;
+  review_count: number;
+}
+
 const Listings = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user, userRole } = useAuth();
+  const { toggleBookmark, isBookmarked } = useBookmarks();
 
-  // Mock data - replace with actual data
-  const listings = [
-    {
-      id: 1,
-      name: "Cozy Campus Hostel",
-      price: 5000,
-      address: "123 University Road, Campus Area",
-      rating: 4.5,
-      reviews: 12,
-      amenities: ["WiFi", "Kitchen", "Laundry"],
-      image: "/placeholder.svg"
-    },
-    {
-      id: 2,
-      name: "Modern Student Living",
-      price: 6500,
-      address: "456 College Street, Student Quarter",
-      rating: 4.8,
-      reviews: 24,
-      amenities: ["WiFi", "Gym", "Parking"],
-      image: "/placeholder.svg"
-    },
-    {
-      id: 3,
-      name: "Affordable Study Space",
-      price: 4200,
-      address: "789 Academia Avenue",
-      rating: 4.2,
-      reviews: 8,
-      amenities: ["WiFi", "Study Room"],
-      image: "/placeholder.svg"
-    },
-  ];
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  const fetchListings = async () => {
+    try {
+      const { data: hostels, error } = await supabase
+        .from('hostels')
+        .select(`
+          id,
+          name,
+          price,
+          address,
+          amenities,
+          description,
+          hostel_images (
+            image_url,
+            display_order
+          ),
+          reviews (
+            rating
+          )
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedListings: Listing[] = (hostels || []).map((hostel: any) => {
+        const ratings = hostel.reviews?.map((r: any) => r.rating) || [];
+        const avgRating = ratings.length > 0 
+          ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length 
+          : null;
+        
+        const sortedImages = hostel.hostel_images?.sort(
+          (a: any, b: any) => (a.display_order || 0) - (b.display_order || 0)
+        );
+
+        return {
+          id: hostel.id,
+          name: hostel.name,
+          price: Number(hostel.price),
+          address: hostel.address,
+          amenities: hostel.amenities || [],
+          description: hostel.description,
+          image_url: sortedImages?.[0]?.image_url || null,
+          avg_rating: avgRating,
+          review_count: ratings.length
+        };
+      });
+
+      setListings(formattedListings);
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredListings = listings.filter(listing =>
+    listing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    listing.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    listing.amenities.some(a => a.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,52 +137,94 @@ const Listings = () => {
         </div>
 
         {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-sm text-muted-foreground">{listings.length} hostels found</p>
+        <div className="mb-6"></div>
+           <p className="text-sm text-muted-foreground">
+            {loading ? "Loading..." : `${filteredListings.length} hostels found`}
+          </p>
         </div>
 
         {/* Listings Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings.map((listing) => (
-            <Link key={listing.id} to={`/hostel/${listing.id}`}>
-              <Card className="hover:shadow-lg transition-shadow overflow-hidden group">
-                <div className="aspect-video bg-muted relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </div>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <h3 className="font-semibold text-lg leading-tight">{listing.name}</h3>
-                    <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded">
-                      <Star className="h-4 w-4 text-primary fill-primary" />
-                      <span className="text-sm font-medium">{listing.rating}</span>
+          {loading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredListings.map((listing) => (
+              <Card key={listing.id} className="hover:shadow-lg transition-shadow overflow-hidden group relative">
+                <Link to={`/hostel/${listing.id}`}>
+                  <div className="aspect-video bg-muted relative overflow-hidden">
+                    {listing.image_url ? (
+                      <img 
+                        src={listing.image_url} 
+                        alt={listing.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Building2 className="h-16 w-16 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                </Link>
+                
+                {user && userRole === 'student' && (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="absolute top-2 right-2 z-10"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleBookmark(listing.id);
+                    }}
+                  >
+                    <Bookmark 
+                      className={`h-4 w-4 ${isBookmarked(listing.id) ? 'fill-primary text-primary' : ''}`}
+                    />
+                  </Button>
+                )}
+                
+                <Link to={`/hostel/${listing.id}`}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-semibold text-lg leading-tight">{listing.name}</h3>
+                      {listing.avg_rating && (
+                        <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded">
+                          <Star className="h-4 w-4 text-primary fill-primary" />
+                          <span className="text-sm font-medium">{listing.avg_rating.toFixed(1)}</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <span>{listing.address}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {listing.amenities.slice(0, 3).map((amenity, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {amenity}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <div>
-                      <p className="text-2xl font-bold text-primary">₦{listing.price.toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground">per month</p>
+                    <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span>{listing.address}</span>
                     </div>
-                    <Button size="sm">View Details</Button>
-                  </div>
-                </CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {listing.amenities.slice(0, 3).map((amenity, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {amenity}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div>
+                        <p className="text-2xl font-bold text-primary">₦{listing.price.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">per month</p>
+                      </div>
+                      <Button size="sm">View Details</Button>
+                    </div>
+                  </CardContent>
+                </Link>
               </Card>
-            </Link>
-          ))}
-        </div>
+
+            ))}
+          </div>
+        )}
 
         {/* Empty State */}
-        {listings.length === 0 && (
+
+        {!loading && filteredListings.length === 0 && (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
               <Search className="h-8 w-8 text-muted-foreground" />
@@ -140,7 +234,7 @@ const Listings = () => {
           </div>
         )}
       </div>
-    </div>
+    
   );
 };
 

@@ -16,6 +16,7 @@ import HostelDetails from "./pages /HostelDetails";
 import CreateListing from "./pages /CreateListing";
 import Profile from "./pages /Profile";
 import NotFound from "./pages /NotFound";
+import React from "react";
 
 const queryClient = new QueryClient();
 
