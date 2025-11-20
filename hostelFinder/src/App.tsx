@@ -12,7 +12,7 @@ import StudentDashboard from "./pages /StudentDashboard";
 import LandlordDashboard from "./pages /LandlordDashboard";
 import AdminDashboard from "./pages /AdminDashboard";
 import Listings from "./pages /Listings";
-import HostelDetails from "./pages /HostelDetails.tsx";
+import HostelDetails from "./pages /HostelDetails";
 import CreateListing from "./pages /CreateListing";
 import Profile from "./pages /Profile";
 import NotFound from "./pages /NotFound";

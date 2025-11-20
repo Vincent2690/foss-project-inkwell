@@ -2,6 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Search, Shield, Star, CheckCircle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import hostel1 from "@/assets/hostel-1.jpg";
+import hostel2 from "@/assets/hostel-2.jpg";
+import hostel3 from "@/assets/hostel-3.jpg";
+import hostel4 from "@/assets/hostel-4.jpg";
+
 const Index = () => {
   const features = [{
     icon: Shield,
