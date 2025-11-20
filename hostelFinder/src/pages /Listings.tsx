@@ -127,7 +127,7 @@ const Listings = () => {
               placeholder="Search by name, location, or amenities..."
               className="pl-10"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setSearchQuery(e.target.value)}
             />
           </div>
           <Button variant="outline" className="md:w-auto">
@@ -138,7 +138,7 @@ const Listings = () => {
 
         {/* Results Count */}
         <div className="mb-6"></div>
-           <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {loading ? "Loading..." : `${filteredListings.length} hostels found`}
           </p>
         </div>
@@ -174,7 +174,7 @@ const Listings = () => {
                     size="icon"
                     variant="secondary"
                     className="absolute top-2 right-2 z-10"
-                    onClick={(e) => {
+                    onClick={(e: { preventDefault: () => void; }) => {
                       e.preventDefault();
                       toggleBookmark(listing.id);
                     }}
