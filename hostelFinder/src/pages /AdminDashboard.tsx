@@ -59,20 +59,32 @@ const AdminDashboard = () => {
       });
     } else if (pending) {
       // Fetch landlord names
-      const landlordIds = [...new Set(pending.map(l => l.landlord_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', landlordIds);
+      // Fetch landlord names
+const landlordIds = pending?.length
+  ? [...new Set(pending.map(l => l.landlord_id).filter(Boolean))]
+  : [];
 
-      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]));
-      const listingsWithNames = pending.map(l => ({
-        ...l,
-        landlord_name: profileMap.get(l.landlord_id) || 'Unknown',
-      }));
-      
-      setPendingListings(listingsWithNames);
-    }
+const { data: profiles, error } = await supabase
+  .from('profiles')
+  .select('id, full_name')
+  .in('id', landlordIds);
+
+if (error) {
+  console.error('Error fetching profiles:', error);
+  return;
+}
+
+const profileMap = new Map(
+  (profiles ?? []).map(p => [p.id, p.full_name])
+);
+
+const listingsWithNames = pending.map(l => ({
+  ...l,
+  landlord_name: profileMap.get(l.landlord_id) || 'Unknown',
+}));
+
+setPendingListings(listingsWithNames);
+
 
     // Fetch stats
     const { count: totalCount } = await supabase
@@ -323,6 +335,6 @@ const AdminDashboard = () => {
       </div>
     </div>
   );
-};
+};}
 
 export default AdminDashboard;
